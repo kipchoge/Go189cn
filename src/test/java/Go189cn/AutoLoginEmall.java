@@ -1,4 +1,5 @@
 package Go189cn;
+
 import java.io.IOException;
 
 import org.openqa.selenium.By;
@@ -6,14 +7,12 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-import WangTing.TesseractOCR;
-
 public class AutoLoginEmall {
 
 	private static  ChromeDriver driver;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		System.setProperty("webdriver.chrome.driver","D:\\selenium\\chromedriver.exe");
+		System.setProperty("webdriver.chrome.driver","D:\\eclipse-workspace\\chromedriver.exe");
 		ChromeOptions options = new ChromeOptions();
 		options.addArguments("disable-infobars");
 		driver = new ChromeDriver(options);
