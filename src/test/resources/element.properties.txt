@@ -1,0 +1,5 @@
+a=name>email>定位用户名输入框
+b=name>password>定位密码输入框
+c=cssSelector>input[class='moco-btn moco-btn-red moco-btn-lg btn-full xa-login']>定位登录按钮输入框
+d=id>header-avator>定位头像位置
+e=className>name>定位用户信息
