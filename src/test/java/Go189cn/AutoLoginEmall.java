@@ -1,6 +1,4 @@
 package Go189cn;
-
-
 import java.io.IOException;
 
 import org.openqa.selenium.By;
@@ -8,41 +6,40 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
-public class AutoLogin {
+import WangTing.TesseractOCR;
+
+public class AutoLoginEmall {
 
 	private static  ChromeDriver driver;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-		System.setProperty("webdriver.chrome.driver","D:\\eclipse-workspace\\chromedriver.exe");
+		System.setProperty("webdriver.chrome.driver","D:\\selenium\\chromedriver.exe");
 		ChromeOptions options = new ChromeOptions();
 		options.addArguments("disable-infobars");
 		driver = new ChromeDriver(options);
 		driver.manage().window().maximize();
-		/*µçÐÅÍøÌüµÇÂ¼
-		driver.get("http://js.189.cn/nservice/login/toLogin?favurl=http://js.189.cn/index");
-		driver.findElementByXPath("//ul[@id='menu1']/li[1]").click();
-		driver.findElementByXPath("//input[@id='cellphone']").sendKeys("17312813155");
-		driver.findElementByXPath("//div[@class='login_con_line select']/input").sendKeys("371516");
-		WebElement ele = driver.findElementByXPath("//p[@class='login_con_line']/span");
-		*/
-		//ÒíÃ¨ÉÌ³ÇµÇÂ¼
-		driver.get("http://go189.cn/emall/emall/member/login.html");
-		driver.findElement(By.id("input_username")).sendKeys("17312813155");
-		driver.findElement(By.id("input_userpwd")).sendKeys("371516");
-		WebElement ele = driver.findElement(By.id("_checkCodeImg"));
 	
+		//´ò¿ªÒíÃ¨ÉÌ³ÇµÇÂ¼Ò³Ãæ
+		driver.get("http://go189.cn/emall/emall/member/login.html");
+		
+		do {
+		driver.findElement(By.id("input_username")).clear();
+		driver.findElement(By.id("input_username")).sendKeys("17312813155");
+		driver.findElement(By.id("input_userpwd")).clear();
+		driver.findElement(By.id("input_userpwd")).sendKeys("371516");
+		driver.findElement(By.id("_checkCodeImg")).click();
+		Thread.sleep(2000);
+		WebElement ele = driver.findElement(By.id("_checkCodeImg"));
 		new TesseractOCR().getVerifyCodeJPG(driver,ele);
 		String verifyCode = new TesseractOCR().recognizeText("D:\\Test\\Tesseract-OCR\\test.jpg");
 		System.out.println(verifyCode);
+		driver.findElement(By.id("input_code_1")).clear();
+		Thread.sleep(500);
+		driver.findElement(By.id("input_code_1")).sendKeys(verifyCode);
+		Thread.sleep(500);
+		driver.findElement(By.linkText("Á¢¼´µÇÂ¼")).click();
 		Thread.sleep(1000);
-		
-		/*ÍøÌü
-		driver.findElementByXPath("//input[@name='validateCodeNumber']").sendKeys(verifyCode);
-		Thread.sleep(1000);
-		driver.findElement(By.id("login_byPhone")).click();
-		*/
-		//ÒíÃ¨
-		
+		}while(driver.getCurrentUrl().equals("http://go189.cn/emall/emall/member/login.html"));
 	}
 
 }
