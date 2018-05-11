@@ -12,12 +12,12 @@ import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 
 public class TesseractOCR {
 
-	public void getVerifyCodeJPG(ChromeDriver driver, WebElement ele) throws IOException {
+	public void getVerifyCodeJPG(WebDriver driver, WebElement ele) throws IOException {
 
 		// Get entire page screenshot
 		File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
