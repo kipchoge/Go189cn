@@ -7,7 +7,6 @@ import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -21,20 +20,20 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.io.MultiOutputStream;
 import org.openqa.selenium.support.ui.Select;
 
-public class AutoLoginOpenter {
+public class AutoCMSOpreation {
 
 	public WebDriver driver;
 
 	public static void main(String[] args) throws Exception {
-		AutoLoginOpenter autoLogin = new AutoLoginOpenter();
+		AutoCMSOpreation autoLogin = new AutoCMSOpreation();
 		autoLogin.initDriver();
-//		autoLogin.autoLogin("mafei", "xwtec@JSDX2016");
+		autoLogin.autoLogin("mafei", "xwtec@JSDX2016");
 //		autoLogin.releaseMateriel();
 //		autoLogin.releaseGoods();
-//		autoLogin.initDriver();
-		autoLogin.autoLogin("admin", "xwtec@JSDX2016");
+		autoLogin.removeGoods();
+//		autoLogin.autoLogin("admin", "xwtec@JSDX2016");
 //		autoLogin.reviewMateriel();
-		autoLogin.reviewGoods();
+//		autoLogin.reviewGoods();
 	}
 
 	/**
@@ -82,12 +81,11 @@ public class AutoLoginOpenter {
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/ul/li[3]/span")).click();//点击“我的物料”
 		Thread.sleep(2000);// 没有这个SLEEP就找不到iframe里面的元素！！！
 		driver.switchTo().frame(driver.findElement(By.xpath("//div[@class='info']/div[2]/div[2]/iframe")));
-		driver.findElement(By.xpath("//body/div[2]/table//tr[2]/td[1]"));
-		driver.findElement(By.xpath("//body/div[2]/table//tr[2]/td[4]/a")).click();
+		driver.findElement(By.xpath("//body/div[2]/table//tr[2]/td[4]/a")).click();//点击编辑
 		Thread.sleep(500);
 		driver.findElement(By.xpath("//ul[@id='mainul']/li[2]/input[1]")).clear();
 		driver.findElement(By.xpath("//ul[@id='mainul']/li[2]/input[1]")).sendKeys("测试物料"+this.getDate());
-		driver.findElement(By.xpath("//form[@id='form']/div[2]/input[1]")).click();
+		driver.findElement(By.xpath("//form[@id='form']/div[2]/input[1]")).click();//点击确认
 		Thread.sleep(500);
 		Alert alt = driver.switchTo().alert();
 		alt.accept();
@@ -131,7 +129,7 @@ public class AutoLoginOpenter {
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
 		Thread.sleep(500);
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/ul/li[2]/span")).click();
-		Thread.sleep(500);
+		Thread.sleep(4000);
 		driver.switchTo().frame(driver.findElement(By.xpath("//div[@class='info']/div[2]/div[2]/iframe")));
 		driver.findElement(By.id("cfname")).sendKeys("测试" + this.getDate());
 		driver.findElement(By.id("cfprice")).sendKeys("1");
@@ -178,23 +176,53 @@ public class AutoLoginOpenter {
 		WebElement channel = driver.findElement(By.xpath("//select[@id='channelId']"));
 		Select downlist3 = new Select(channel);
 		downlist3.selectByIndex(1);
+		Thread.sleep(2000);
 		// 上传三张商品图片
 		String jpgPath = "C:\\Users\\Administrator\\Desktop\\kipsang.jpg";
 		driver.findElement(By.xpath("//ul[@class='list_img']/li[1]/span[1]/input[1]")).sendKeys(jpgPath);
+		Thread.sleep(2000);
 		driver.findElement(By.xpath("//ul[@class='list_img']/li[2]/span[1]/input[1]")).sendKeys(jpgPath);
+		Thread.sleep(2000);
 		driver.findElement(By.xpath("//ul[@class='list_img']/li[3]/span[1]/input[1]")).sendKeys(jpgPath);
+		Thread.sleep(2000);
 		// 点击提交审核
 		driver.findElement(By.xpath("//div[@class='content']/div[2]/input[2]")).click();
+		Thread.sleep(1000);
+		Alert alt = driver.switchTo().alert();
+		alt.accept();
+		Thread.sleep(2000);
+		driver.switchTo().defaultContent(); // 退出iframe，回到主界面
+		Thread.sleep(1000);
+		driver.findElement(By.xpath("//ul[@id='list']/li[2]/em")).click();
+		Thread.sleep(1000);
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
+	}
+
+	/**
+	 * 下架销售品
+	 * @throws InterruptedException 
+	 */
+	public void removeGoods() throws InterruptedException {
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
+		Thread.sleep(500);
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/ul/li[4]/span")).click();//点击“我的销售品”
+		Thread.sleep(2000);// 没有这个SLEEP就找不到iframe里面的元素！！！
+		driver.switchTo().frame(driver.findElement(By.xpath("//div[@class='info']/div[2]/div[2]/iframe")));
+		try {
+		driver.findElement(By.xpath("//table[@id='tableList']//tr[2]/td[7]/a[3]")).click();//点击下架按钮
 		Thread.sleep(500);
 		Alert alt = driver.switchTo().alert();
 		alt.accept();
+		}catch (Exception NoSuchElementException) {
+			System.out.println("要下架的商品不存在");
+		}
 		driver.switchTo().defaultContent(); // 退出iframe，回到主界面
 		Thread.sleep(500);
 		driver.findElement(By.xpath("//ul[@id='list']/li[2]/em")).click();
 		Thread.sleep(500);
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
 	}
-
+	
 	/**
 	 * 审核物料
 	 */
@@ -251,7 +279,10 @@ public class AutoLoginOpenter {
 		Thread.sleep(2000);
 		try {
 		String goodsID = driver.findElement(By.xpath("//body/div[2]/table//tr[2]/td[1]")).getText();
+		String isNew = driver.findElement(By.xpath("//body/div[2]/table//tr[2]/td[4]")).getText();
+		if(isNew.equals("申请新增")) {
 		System.out.println("goodsID="+goodsID);
+		}
 		driver.findElement(By.xpath("//body/div[2]//table[@id='tableList']//tr[2]/td[6]/a")).click();// 点击详情
 		Thread.sleep(500);
 		driver.findElement(By.xpath("//form[@id='form']/div/div[6]/input[2]")).click();
