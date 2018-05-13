@@ -7,6 +7,8 @@ import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -31,16 +33,89 @@ public class AutoCMSOpreation {
 	public WebDriver driver;
 
 	public static void main(String[] args) throws Exception {
-		AutoCMSOpreation autoLogin = new AutoCMSOpreation();
-//		autoLogin.initDriver();
-//		autoLogin.autoLogin("mafei", "xwtec@JSDX2016");
-//		autoLogin.releaseMateriel();
-//		autoLogin.releaseGoods();
-//		autoLogin.removeGoods();
-//		autoLogin.autoLogin("admin", "xwtec@JSDX2016");
-//		autoLogin.reviewMateriel();
-//		autoLogin.reviewGoods();
+		AutoCMSOpreation aco = new AutoCMSOpreation();
+		//aco.autoRR();//发布物料、销售品，审核物料、销售品流程跑一遍。
+		aco.autoOrdering();//自动下单，截取微信与支付宝支付与微信图片并保存
+		//aco.autoDelivery();// 自动发货。
 	}
+
+	/**
+	 * 自动下单
+	 * @throws IOException 
+	 * @throws InterruptedException 
+	 */
+	private void autoOrdering() throws IOException, InterruptedException {
+		this.initDriver();
+		Properties properties = new BaseOpreation().getProperties("D:\\eclipse-workspace\\Go189cn\\src\\test\\resources\\emallGoodsId.txt");
+		String url = properties.getProperty(String.valueOf("goodsID"));
+		driver.get(url);
+		driver.findElement(By.className("btn-blue")).click();
+		//输入收件人姓名
+		driver.findElement(By.id("address-name-new")).sendKeys("测试");
+		//从下拉框随机选择一个省份(减2是为了不选到香港和澳门)
+		WebElement province = driver.findElement(By.id("address-province-new"));
+		Select downList1 = new Select(province);
+		int a = downList1.getOptions().size();
+		Random rand1 = new Random();
+		int i = rand1.nextInt(a-1)+1-2;
+		downList1.selectByIndex(i);
+		//从下拉框随机选择一个城市
+		WebElement city = driver.findElement(By.id("address-city-new"));
+		Select downList2 = new Select(city);
+		int b = downList2.getOptions().size();
+		Random rand2 = new Random();
+		int j = rand2.nextInt(b-1)+1;
+		downList2.selectByIndex(j);
+		//从下拉框随机选择一个地区
+		WebElement district = driver.findElement(By.id("address-district-new"));
+		Select downList3 = new Select(district);
+		int c = downList3.getOptions().size();
+		Random rand3 = new Random();
+		int k = rand3.nextInt(c-1)+1;
+		downList3.selectByIndex(k);
+		//输入详细地址
+		driver.findElement(By.id("address-homeAddress-new")).sendKeys("这是测试地址");
+		//输入手机号码
+		driver.findElement(By.id("address-mobile-new")).sendKeys("18012345678");
+		//点击提交订单
+		driver.findElement(By.className("orange-btn")).click();
+		Thread.sleep(1000);
+		driver.findElement(By.xpath("//div[@class='orders-action']/a[2]")).click();
+		Thread.sleep(2000);
+		WebElement ele1 = driver.findElement(By.xpath("//div[@id='J_qrPayArea']/div[3]/div[1]"));
+		new TesseractOCR().getVerifyCodeJPG(driver, ele1, "支付宝二维码");
+		Thread.sleep(1000);
+		driver.navigate().back();
+		Thread.sleep(1000);
+		driver.findElement(By.xpath("//div[@class='payment-select']//tr[1]/td[2]//label[2]/span")).click();
+		Thread.sleep(1000);
+		driver.findElement(By.xpath("//div[@class='orders-action']/a[2]")).click();
+		Thread.sleep(1000);
+		WebElement ele2 = driver.findElement(By.xpath("//img[@id='qrcode']"));
+		new TesseractOCR().getVerifyCodeJPG(driver, ele2, "微信二维码");
+		Thread.sleep(2000);
+		driver.close();
+	}
+	
+	/**
+	 * 自动发货
+	 */
+	private void autoDelivery() {
+
+	}
+
+	public void autoRR() throws Exception {
+		this.initDriver();
+		this.autoUserLogin();
+		this.releaseMateriel();
+		// this.releaseGoods();
+		// this.removeGoods();
+		this.editGoods();
+		this.autoAdminLogin();
+		this.reviewMateriel();
+		this.reviewGoods();
+		this.closeDriver();
+		}
 
 	/**
 	 * 初始化浏览器
@@ -66,6 +141,11 @@ public class AutoCMSOpreation {
 		System.out.println("用户登录成功");
 	}
 	
+	/**
+	 * 通过输入管理员名，密码自动登录
+	 * @throws IOException 
+	 * @throws InterruptedException 
+	 */
 	@Test(priority = 4)
 	public void autoAdminLogin() throws InterruptedException, IOException {
 		this.autoLogin("admin", "xwtec@JSDX2016");
@@ -83,8 +163,8 @@ public class AutoCMSOpreation {
 			driver.findElement(By.id("_checkCodeImg")).click();
 			Thread.sleep(2000);
 			WebElement ele = driver.findElement(By.id("_checkCodeImg"));
-			new TesseractOCR().getVerifyCodeJPG(driver, ele);
-			String verifyCode = new TesseractOCR().recognizeText("D:\\Test\\Tesseract-OCR\\test.jpg");
+			new TesseractOCR().getVerifyCodeJPG(driver, ele,"test");
+			String verifyCode = new TesseractOCR().recognizeText("D:\\eclipse-workspace\\Go189cn\\src\\test\\resources\\test.jpg");
 			driver.findElement(By.id("checkCode")).clear();
 			Thread.sleep(500);
 			driver.findElement(By.id("checkCode")).sendKeys(verifyCode);
@@ -319,7 +399,7 @@ public class AutoCMSOpreation {
 	public void reviewGoods() throws InterruptedException, FileNotFoundException {
 		//输出审核通过的销售品ID到TXT文本
 		PrintStream oldPrintStream = System.out;
-		String filename = "D:\\eclipse-workspace\\Go189cn\\src\\test\\resources\\" + this.getDate() + "emallGoodsId.txt";
+		String filename = "D:\\eclipse-workspace\\Go189cn\\src\\test\\resources\\emallGoodsId.txt";
 		FileOutputStream bos = new FileOutputStream(filename);
 		MultiOutputStream multi = new MultiOutputStream(new PrintStream(bos), oldPrintStream);
 		System.setOut(new PrintStream(multi));
@@ -339,8 +419,11 @@ public class AutoCMSOpreation {
 		String goodsID = driver.findElement(By.xpath("//body/div[2]/table//tr[2]/td[1]")).getText();
 		String isNew = driver.findElement(By.xpath("//body/div[2]/table//tr[2]/td[4]")).getText();
 		if(isNew.equals("申请新增")) {
-		System.out.println("goodsID="+goodsID);
+		System.out.println("goodsID=http://go189.cn/emall/web/product.do?productId="+goodsID);
 		}
+		if(isNew.equals("申请修改")) {
+			System.out.println("goodsID=http://go189.cn/emall/web/product.do?productId="+goodsID);
+			}
 		driver.findElement(By.xpath("//body/div[2]//table[@id='tableList']//tr[2]/td[6]/a")).click();// 点击详情
 		Thread.sleep(500);
 		driver.findElement(By.xpath("//form[@id='form']/div/div[6]/input[2]")).click();
@@ -351,11 +434,11 @@ public class AutoCMSOpreation {
 		}catch (Exception NoSuchElementException) {
 			System.out.println("要审核的商品不存在");
 		}
-		Thread.sleep(500);
+		Thread.sleep(1000);
 		driver.switchTo().defaultContent(); // 退出iframe，回到主界面
-		Thread.sleep(500);
+		Thread.sleep(1000);
 		driver.findElement(By.xpath("//ul[@id='list']/li[2]/em")).click();
-		Thread.sleep(500);
+		Thread.sleep(1000);
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[15]/span[1]")).click();
 		System.out.println("销售品审核成功");
 	}

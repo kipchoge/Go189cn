@@ -17,7 +17,7 @@ import org.openqa.selenium.WebElement;
 
 public class TesseractOCR {
 
-	public void getVerifyCodeJPG(WebDriver driver, WebElement ele) throws IOException {
+	public void getVerifyCodeJPG(WebDriver driver, WebElement ele, String jpgName) throws IOException {
 
 		// Get entire page screenshot
 		File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
@@ -35,7 +35,7 @@ public class TesseractOCR {
 		ImageIO.write(eleScreenshot, "png", screenshot);
 
 		// Copy the element screenshot to disk
-		File screenshotLocation = new File("D:\\Test\\Tesseract-OCR\\test.jpg");
+		File screenshotLocation = new File("D:\\eclipse-workspace\\Go189cn\\src\\test\\resources\\"+jpgName+".jpg");
 		FileUtils.copyFile(screenshot, screenshotLocation);
 	}
 

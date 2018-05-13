@@ -29,7 +29,7 @@ public class AutoLoginEmall {
 		driver.findElement(By.id("_checkCodeImg")).click();
 		Thread.sleep(2000);
 		WebElement ele = driver.findElement(By.id("_checkCodeImg"));
-		new TesseractOCR().getVerifyCodeJPG(driver,ele);
+		new TesseractOCR().getVerifyCodeJPG(driver,ele,"test");
 		String verifyCode = new TesseractOCR().recognizeText("D:\\Test\\Tesseract-OCR\\test.jpg");
 		System.out.println(verifyCode);
 		driver.findElement(By.id("input_code_1")).clear();
