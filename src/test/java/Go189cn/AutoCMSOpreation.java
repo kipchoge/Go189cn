@@ -19,6 +19,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.io.MultiOutputStream;
 import org.openqa.selenium.support.ui.Select;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -381,6 +382,13 @@ public class AutoCMSOpreation {
 			//WebDriver window = driver.switchTo().window(it.next());// 切换到新窗口
 			// driver.switchTo().window(currentWindow);// 回到原来页面
 		}
+	}
+	/**
+	 * 关闭浏览器
+	 */
+	@AfterClass
+	public void closeDriver() {
+		driver.close();
 	}
 	
 	/**
