@@ -19,6 +19,11 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.io.MultiOutputStream;
 import org.openqa.selenium.support.ui.Select;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import com.beust.jcommander.Parameters;
 
 public class AutoCMSOpreation {
 
@@ -26,11 +31,11 @@ public class AutoCMSOpreation {
 
 	public static void main(String[] args) throws Exception {
 		AutoCMSOpreation autoLogin = new AutoCMSOpreation();
-		autoLogin.initDriver();
-		autoLogin.autoLogin("mafei", "xwtec@JSDX2016");
+//		autoLogin.initDriver();
+//		autoLogin.autoLogin("mafei", "xwtec@JSDX2016");
 //		autoLogin.releaseMateriel();
 //		autoLogin.releaseGoods();
-		autoLogin.removeGoods();
+//		autoLogin.removeGoods();
 //		autoLogin.autoLogin("admin", "xwtec@JSDX2016");
 //		autoLogin.reviewMateriel();
 //		autoLogin.reviewGoods();
@@ -39,20 +44,37 @@ public class AutoCMSOpreation {
 	/**
 	 * 初始化浏览器
 	 */
+	@BeforeClass
 	public void initDriver() {
 		System.setProperty("webdriver.chrome.driver", "D:\\eclipse-workspace\\chromedriver.exe");
 		ChromeOptions options = new ChromeOptions();
 		options.addArguments("disable-infobars");
 		driver = new ChromeDriver(options);
 		driver.manage().window().maximize();
-		driver.get("http://go189.cn/emall/hdscOP/jsp/openter.jsp");
+		System.out.println("浏览器初始化完成");
 	}
 
 	/**
 	 * 通过输入用户名，密码自动登录
+	 * @throws IOException 
+	 * @throws InterruptedException 
 	 */
+	@Test(priority = 1)
+	public void autoUserLogin() throws InterruptedException, IOException {
+		this.autoLogin("mafei", "xwtec@JSDX2016");
+		System.out.println("用户登录成功");
+	}
+	
+	@Test(priority = 4)
+	public void autoAdminLogin() throws InterruptedException, IOException {
+		this.autoLogin("admin", "xwtec@JSDX2016");
+		System.out.println("管理员登录成功");
+	}
+	
+	
 	public void autoLogin(String user, String passWord) throws InterruptedException, IOException {
 		do {
+			driver.get("http://go189.cn/emall/hdscOP/jsp/openter.jsp");
 			driver.findElement(By.id("loginName")).clear();
 			driver.findElement(By.id("loginName")).sendKeys(user);
 			driver.findElement(By.id("loginPwd")).clear();
@@ -62,7 +84,6 @@ public class AutoCMSOpreation {
 			WebElement ele = driver.findElement(By.id("_checkCodeImg"));
 			new TesseractOCR().getVerifyCodeJPG(driver, ele);
 			String verifyCode = new TesseractOCR().recognizeText("D:\\Test\\Tesseract-OCR\\test.jpg");
-			System.out.println(verifyCode);
 			driver.findElement(By.id("checkCode")).clear();
 			Thread.sleep(500);
 			driver.findElement(By.id("checkCode")).sendKeys(verifyCode);
@@ -75,6 +96,7 @@ public class AutoCMSOpreation {
 	/**
 	 * 发布物料
 	 */
+	@Test(priority = 2)
 	public void releaseMateriel() throws InterruptedException {
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
 		Thread.sleep(500);
@@ -120,11 +142,13 @@ public class AutoCMSOpreation {
 		alt.accept();
 		driver.switchTo().defaultContent(); // 退出iframe，回到主界面
 		Thread.sleep(500);*/
+		System.out.println("物料发布成功");
 	}
 
 	/**
 	 * 发布销售品
 	 */
+
 	public void releaseGoods() throws Exception {
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
 		Thread.sleep(500);
@@ -196,12 +220,41 @@ public class AutoCMSOpreation {
 		driver.findElement(By.xpath("//ul[@id='list']/li[2]/em")).click();
 		Thread.sleep(1000);
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
+		System.out.println("销售品发布成功");
 	}
-
+	/**
+	 * 编辑销售品
+	 * @throws InterruptedException 
+	 */
+	@Test(priority = 3)
+	public void editGoods() throws Exception{
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
+		Thread.sleep(500);
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/ul/li[4]/span")).click();//点击“我的销售品”
+		Thread.sleep(2000);// 没有这个SLEEP就找不到iframe里面的元素！！！
+		driver.switchTo().frame(driver.findElement(By.xpath("//div[@class='info']/div[2]/div[2]/iframe")));
+		driver.findElement(By.xpath("//body/div[2]/table//tr[2]/td[7]/a[2]")).click();//点击编辑
+		Thread.sleep(500);
+		driver.findElement(By.xpath("//ul[@id='mainul']/li[2]/input[1]")).clear();
+		driver.findElement(By.xpath("//ul[@id='mainul']/li[2]/input[1]")).sendKeys("测试"+this.getDate()+"-1");
+		driver.findElement(By.xpath("//form[@id='form']/div/div[6]/input[2]")).click();//点击保存
+		Thread.sleep(500);
+		Alert alt = driver.switchTo().alert();
+		alt.accept();
+		Thread.sleep(500);
+		driver.switchTo().defaultContent(); // 退出iframe，回到主界面
+		Thread.sleep(500);
+		driver.findElement(By.xpath("//ul[@id='list']/li[2]/em")).click();
+		Thread.sleep(500);
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
+		Thread.sleep(500);
+		System.out.println("销售品编辑成功");
+	}
 	/**
 	 * 下架销售品
 	 * @throws InterruptedException 
 	 */
+
 	public void removeGoods() throws InterruptedException {
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
 		Thread.sleep(500);
@@ -221,11 +274,13 @@ public class AutoCMSOpreation {
 		driver.findElement(By.xpath("//ul[@id='list']/li[2]/em")).click();
 		Thread.sleep(500);
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
+		System.out.println("销售品下架成功");
 	}
 	
 	/**
 	 * 审核物料
 	 */
+	@Test(priority = 5)
 	public void reviewMateriel() throws InterruptedException {
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[15]/span[1]")).click();
 		Thread.sleep(500);
@@ -252,16 +307,18 @@ public class AutoCMSOpreation {
 		driver.findElement(By.xpath("//ul[@id='list']/li[2]/em")).click();
 		Thread.sleep(500);
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[15]/span[1]")).click();
+		System.out.println("物料审核成功");
 	}
 
 	/**
 	 * 审核销售品
 	 * @throws FileNotFoundException 
 	 */
+	@Test(priority = 6)
 	public void reviewGoods() throws InterruptedException, FileNotFoundException {
 		//输出审核通过的销售品ID到TXT文本
 		PrintStream oldPrintStream = System.out;
-		String filename = "D:\\eclipse\\eclipse-workspace\\Go189cn\\src\\test\\resources\\" + this.getDate() + "emallGoodsId.txt";
+		String filename = "D:\\eclipse-workspace\\Go189cn\\src\\test\\resources\\" + this.getDate() + "emallGoodsId.txt";
 		FileOutputStream bos = new FileOutputStream(filename);
 		MultiOutputStream multi = new MultiOutputStream(new PrintStream(bos), oldPrintStream);
 		System.setOut(new PrintStream(multi));
@@ -299,6 +356,7 @@ public class AutoCMSOpreation {
 		driver.findElement(By.xpath("//ul[@id='list']/li[2]/em")).click();
 		Thread.sleep(500);
 		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[15]/span[1]")).click();
+		System.out.println("销售品审核成功");
 	}
 
 	/**
