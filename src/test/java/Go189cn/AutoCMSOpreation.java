@@ -35,8 +35,9 @@ public class AutoCMSOpreation {
 	public static void main(String[] args) throws Exception {
 		AutoCMSOpreation aco = new AutoCMSOpreation();
 		//aco.autoRR();//发布物料、销售品，审核物料、销售品流程跑一遍。
-		aco.autoOrdering();//自动下单，截取微信与支付宝支付与微信图片并保存
+		//aco.autoOrdering();//自动下单，截取微信与支付宝支付与微信图片并保存
 		//aco.autoDelivery();// 自动发货。
+		//aco.checkOrder("80513328613000000");
 	}
 
 	/**
@@ -99,11 +100,69 @@ public class AutoCMSOpreation {
 	
 	/**
 	 * 自动发货
+	 * @throws IOException 
+	 * @throws InterruptedException 
 	 */
-	private void autoDelivery() {
-
+	private void autoDelivery() throws InterruptedException, IOException {
+		this.initDriver();
+		this.autoUserLogin();
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[2]/span[1]")).click();//点击订单管理（商户）
+		Thread.sleep(500);
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[2]/ul/li[1]/span")).click();//点击“订单处理”
+		Thread.sleep(2000);// 没有这个SLEEP就找不到iframe里面的元素！！！
+		driver.switchTo().frame(driver.findElement(By.xpath("//div[@class='info']/div[2]/div[2]/iframe")));
+		driver.findElement(By.xpath("//div[@id='tabs']/ul/li[3]/a")).click();//点击待发货按钮
+		Thread.sleep(3000);
+		try {
+			String fullText = driver.findElement(By.xpath("//div[@class='content01']//tr[2]/td[1]")).getText();//获取订单信息
+			String orderNo = fullText.substring(8, 22);
+			System.out.println(orderNo);
+			Thread.sleep(500);
+			driver.findElement(By.xpath("//table[@id='tableList']//tr[3]/td[6]/input[2]")).click();//点击去发货
+			System.out.println(orderNo);
+			Thread.sleep(1000);
+			driver.findElement(By.xpath("//form[@name='orderForm']/table//tr[4]//input")).sendKeys(this.getDate());
+			Thread.sleep(500);
+			driver.findElement(By.xpath("//form[@name='orderForm']/table//tr[6]//input[1]")).click();
+			Thread.sleep(2000);
+			this.checkOrder(orderNo);
+		}catch(Exception NoSuchElementException) {
+			System.out.println("没有待发货的商品");
+		}
+		Thread.sleep(500);
 	}
-
+	/**
+	 * 根据订单号查询是否发货并返回信息
+	 * */
+	public void checkOrder(String OrderNo) throws InterruptedException, IOException {
+		this.initDriver();
+		this.autoAdminLogin();
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[6]/span[1]")).click();//点击订单管理
+		Thread.sleep(500);
+		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[6]/ul/li[3]")).click();//点击订单查询
+		Thread.sleep(4000);
+		driver.switchTo().frame(driver.findElement(By.xpath("//div[@class='info']/div[2]/div[2]/iframe")));
+		driver.findElement(By.xpath("//form[@id='mainForm']/fieldset/table//tr[1]/td[2]/input")).sendKeys(OrderNo);
+		Thread.sleep(1000);
+		driver.findElement(By.xpath("//form[@id='mainForm']/fieldset/table//tr[5]//input[1]")).click();//搜索订单号
+		Thread.sleep(3000);
+		//try {
+		driver.findElement(By.xpath("//table[@id='tableList']/tbody/tr[1]/td[7]/a")).click();//点击查看详情
+		Thread.sleep(2000);
+		try {
+		String operation = "//form[@name='orderForm']/table//table[@id='tableList2']//tr[3]/td[4]";
+		String isDelivery = driver.findElement(By.xpath(operation)).getText();
+		System.out.println(isDelivery);
+		if(isDelivery.equals("商户发货")) {
+			System.out.println("发货成功");
+		}
+		}catch(Exception NoSuchElementException){
+			System.out.println("发货信息未查到");
+		}
+	}
+	/**
+	 * 自动发布物料、销售品，然后审核物料、销售品
+	 * */
 	public void autoRR() throws Exception {
 		this.initDriver();
 		this.autoUserLogin();
@@ -231,17 +290,17 @@ public class AutoCMSOpreation {
 	 */
 
 	public void releaseGoods() throws Exception {
-		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
-		Thread.sleep(500);
-		driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/ul/li[2]/span")).click();
-		Thread.sleep(4000);
-		driver.switchTo().frame(driver.findElement(By.xpath("//div[@class='info']/div[2]/div[2]/iframe")));
-		driver.findElement(By.id("cfname")).sendKeys("测试" + this.getDate());
-		driver.findElement(By.id("cfprice")).sendKeys("1");
-		driver.findElement(By.id("cfpriceend")).sendKeys("2");
-		driver.findElement(By.id("cfsalepoint")).sendKeys("测试商品，请勿购买！！！");
-		String currentWindow = driver.getWindowHandle();// 获取当前窗口句柄
-		driver.findElement(By.id("addMater1")).click();
+			driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/span[1]")).click();
+			Thread.sleep(500);
+			driver.findElement(By.xpath("//ul[@id='drop-menu']/li[4]/ul/li[2]/span")).click();
+			Thread.sleep(4000);
+			driver.switchTo().frame(driver.findElement(By.xpath("//div[@class='info']/div[2]/div[2]/iframe")));
+			driver.findElement(By.id("cfname")).sendKeys("测试" + this.getDate());
+			driver.findElement(By.id("cfprice")).sendKeys("1");
+			driver.findElement(By.id("cfpriceend")).sendKeys("2");
+			driver.findElement(By.id("cfsalepoint")).sendKeys("测试商品，请勿购买！！！");
+			String currentWindow = driver.getWindowHandle();// 获取当前窗口句柄
+			driver.findElement(By.id("addMater1")).click();
 		this.checkNewPage();
 		driver.findElement(By.id("materialName")).sendKeys("测试物料");
 		Thread.sleep(200);
